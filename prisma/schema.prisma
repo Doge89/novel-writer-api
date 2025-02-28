@@ -1,0 +1,257 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url      = env("POSTGRESQL_DATABASE_URL")
+}
+
+enum Gender {
+  M
+  F
+}
+
+enum Region {
+  USA
+  Mexico
+  Canada
+  Brazil
+  Argentina
+  Colombia
+  China
+  Japan
+  Spain
+  Sweden
+}
+
+enum StoryTags {
+  ScienceFiction
+  Suspense
+  Thriller
+  Adventure
+  Mistery
+  Romance
+  NewAdult
+  NoFiction
+  Fantasy
+  Fiction
+}
+
+enum NotificationType {
+  NewChapter
+  NewStory
+  NewPost
+  Comment
+  Reaction
+  Informational
+}
+
+enum ActionPerformed {
+  Update
+  Delete
+  Insert
+}
+
+model User {
+  userId            Int            @default(autoincrement()) @id
+  userUUID          String         @postgresql.Uuid
+  username          String         @unique @postgresql.VarChar(100)
+  firstName         String         @postgresql.VarChar(100)
+  lastName          String         @postgresql.VarChar(100)
+  birthDay          DateTime       @postgresql.Timestamptz()
+  email             String         @unique
+  password          String
+  avatar            String?        @postgresql.Text
+  bio               String?        @postgresql.Text
+  gender            Gender
+  pronouns          String?        @default("")
+  region            Region
+  isUserValidated   Boolean        @postgresql.Boolean @default(false)
+  tokenRegistration String         @postgresql.Text
+  isWriter          Boolean        @postgresql.Boolean @default(false)
+  isActive          Boolean        @postgresql.Boolean @default(true)
+  createdAt         DateTime       @postgresql.Timestamptz() @default(now())
+  updatedAt         DateTime       @postgresql.Timestamptz() @default(now())
+  createdStories    Story[]
+  collections       Collection[]
+  reading           UserReading[]
+  ownedGroups       Group[]
+  memberIn          GroupMembers[]
+  feats             UserFeats[]
+  userActions       Log[]
+
+  @@index([username, email, firstName, createdAt(sort: Desc)])
+}
+
+model Story {
+  storyId            Int                    @default(autoincrement()) @id
+  storyUUID          String                 @postgresql.Uuid
+  title              String                 @postgresql.VarChar(255)
+  synopsis           String                 @postgresql.Text @default("")
+  cover              String                 @postgresql.Text @default("")
+  starred            Int                    @default(0)
+  activeReaders      Int                    @default(0)
+  rating             Int                    @postgresql.SmallInt @default(0)
+  writer             User                   @relation(fields: [writerId], references: [userId])
+  writerId           Int
+  isMature           Boolean                @postgresql.Boolean @default(false)
+  isActive           Boolean                @postgresql.Boolean @default(true)
+  createdAt          DateTime               @postgresql.Timestamptz() @default(now())
+  updatedAt          DateTime               @postgresql.Timestamptz() @default(now())
+  tags               StoryHasTags[]
+  storyInCollections CollectionHasStories[]
+  usersReading       UserReading[]
+
+  @@index([title(sort: Asc), createdAt(sort: Desc)])
+}
+
+model Tags {
+  tagId   Int            @default(autoincrement()) @id
+  tagName StoryTags      @unique
+  icon    String         @postgresql.Text @unique
+  stories StoryHasTags[]
+}
+
+model Collection {
+  collectionId Int                    @default(autoincrement()) @id
+  title        String                 @postgresql.VarChar(255)
+  description  String                 @postgresql.Text @default("")
+  isPublic     Boolean                @postgresql.Boolean @default(true)
+  isActive     Boolean                @postgresql.Boolean @default(true)
+  userId       Int
+  createdAt    DateTime               @postgresql.Timestamptz() @default(now())
+  updatedAt    DateTime               @postgresql.Timestamptz() @default(now())
+  user         User                   @relation(fields: [userId], references: [userId])
+  stories      CollectionHasStories[]
+
+  @@index([title], map: "IDX_COLLECTION_TITLE")
+}
+
+model Group {
+  groupId     Int            @default(autoincrement()) @id
+  groupUUID   String         @postgresql.Uuid @unique
+  groupName   String         @postgresql.VarChar(300) @unique
+  description String         @postgresql.Text @default("")
+  banner      String         @postgresql.Text
+  creatorId   Int
+  isActive    Boolean        @postgresql.Boolean @default(true)
+  createdAt   DateTime       @postgresql.Timestamptz() @default(now())
+  updatedAt   DateTime       @postgresql.Timestamptz() @default(now())
+  members     GroupMembers[]
+
+  @@index([groupName], map: "IDX_GROUP_GROUPNAME")
+
+  userCreator User @relation(fields: [creatorId], references: [userId])
+}
+
+model Notification {
+  notificationId Int              @default(autoincrement()) @id
+  title          String           @postgresql.VarChar(255)
+  description    String           @postgresql.Text
+  type           NotificationType
+  url            String           @postgresql.Text
+  createdAt      DateTime         @postgresql.Timestamptz() @default(now())
+}
+
+model Feat {
+  featId    Int      @default(autoincrement()) @id
+  featName  String   @postgresql.VarChar(100) @unique
+  image     String   @postgresql.Text
+  createdAt DateTime @postgresql.Timestamptz() @default(now())
+
+  usersWithFeat UserFeats[]
+}
+
+model Log {
+  logId       Int             @default(autoincrement()) @id
+  action      ActionPerformed
+  description String          @postgresql.VarChar(300)
+  sqlTable    String          @postgresql.VarChar(100)
+  userId      Int
+  createdAt   DateTime        @postgresql.Timestamptz() @default(now())
+
+  @@index([action], map: "IDX_LOG_ACTION_PERFORMED")
+  userInvolved User @relation(fields: [userId], references: [userId])
+}
+
+model Settings {
+  settingsId   Int      @default(autoincrement()) @id
+  userSettings Json     @postgresql.JsonB
+  userId       Int
+  createdAt    DateTime @postgresql.Timestamptz() @default(now())
+  updatedAt    DateTime @postgresql.Timestamptz() @default(now())
+}
+
+model StoryHasTags {
+  storyTagId   Int
+  storyRelated Int
+
+  @@id([storyTagId, storyRelated])
+
+  storyTag Tags  @relation(fields: [storyTagId], references: [tagId])
+  story    Story @relation(fields: [storyRelated], references: [storyId])
+}
+
+model CollectionHasStories {
+  storyId      Int
+  collectionId Int
+
+  @@id([storyId, collectionId])
+
+  storyInCollection Story      @relation(fields: [storyId], references: [storyId])
+  ownedByCollection Collection @relation(fields: [collectionId], references: [collectionId])
+}
+
+model UserReading {
+  storyId   Int
+  readerId  Int
+  progress  Decimal  @postgresql.Decimal(5, 2)
+  isLoved   Boolean  @postgresql.Boolean @default(false)
+  createdAt DateTime @postgresql.Timestamptz() @default(now())
+  updatedAt DateTime @postgresql.Timestamptz() @default(now())
+
+  @@id([storyId, readerId])
+  reading Story @relation(fields: [storyId], references: [storyId])
+  reader  User  @relation(fields: [readerId], references: [userId])
+}
+
+model GroupMembers {
+  groupId     Int
+  memberId    Int
+  memberSince DateTime @postgresql.Timestamptz() @default(now())
+  isActive    Boolean  @postgresql.Boolean @default(true)
+
+  @@id([groupId, memberId])
+  memberFrom Group @relation(fields: [groupId], references: [groupId])
+  member     User  @relation(fields: [memberId], references: [userId])
+}
+
+model UserNotification {
+  notificationId Int
+  userNotified Int
+  isRead Boolean @postgresql.Boolean @default(false)
+
+  @@id([notificationId, userNotified], map: "PK_USER_NOTIFICATION_NOTIFICATIONS")
+}
+
+model UserFeats {
+  featId    Int
+  userId    Int
+  progress  Decimal  @postgresql.Decimal(5, 2) @default(0.0)
+  isAchived Boolean  @postgresql.Boolean @default(false)
+  achivedAt DateTime @postgresql.Timestamptz()
+  createdAt DateTime @postgresql.Timestamptz() @default(now())
+  updatedAt DateTime @postgresql.Timestamptz() @default(now())
+
+  @@id([featId, userId], map: "PK_USER_FEAT_FEATS")
+  feat Feat @relation(fields: [featId], references: [featId])
+  user User @relation(fields: [userId], references: [userId])
+}
+

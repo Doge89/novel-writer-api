@@ -1,0 +1,27 @@
+services:
+  postgresql-database:
+    image: "postgres:alpine"
+    restart: always
+    env_file: ./.env.postgresql
+    volumes:
+      - ./database:/var/lib/postgresql/data
+    ports:
+      - '5432:5433'
+  redis-database:
+    image: 'redis/redis-stack-server:latest'
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./redis-database:/data
+  mongodb:
+    image: 'mongo:noble'
+    restart: always
+    env_file: ./.env.mongodb
+  mongo-express:
+    image: 'mongo-express:latest'
+    restart: always
+    depends_on:
+      - mongodb
+    env_file: ./.env.mongoexpress
+
