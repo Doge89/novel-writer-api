@@ -8,6 +8,6 @@ services:
     restart: on-failure
     depends_on:
       - postgresql-database
-      - redis-database  
+      - redis-database
     ports:
       - "3000:3000"

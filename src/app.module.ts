@@ -1,17 +1,24 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './api/v1/user/user.module';
-import { UserController } from './api/v1/user/user.controller';
 import { DatabaseManagerModule } from './services/database/database-manager.module';
 import { AppRouterModule } from './modules/app-router.module';
 import { ValidatorsModule } from './services/validators/validators.module';
 import { AuthModule } from './services/auth/auth.module';
 import { AuthModule as AuthUserModule } from './api/v1/auth/auth.module';
-import { ValidateRegistrationTokenMiddleware } from './middlewares/auth/validate-registration-token/validate-registration-token.middleware';
+
+import secrets from './config/secrets.config';
+import { ENVIRONMENTS } from './config/environments';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: ENVIRONMENTS[process.env.NODE_ENV || 'development'],
+      load: [secrets],
+      isGlobal: true,
+    }),
     AuthModule,
     UserModule,
     AuthUserModule,

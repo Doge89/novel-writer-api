@@ -1,4 +1,4 @@
-import { JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
+import { JwtVerifyOptions } from '@nestjs/jwt';
 
 import { JwtTokens } from '../../models/auth/auth.model';
 
@@ -8,9 +8,9 @@ export interface AuthServiceBase {
   startUserRegister(
     userDto: UserRegisterDto,
   ): Promise<Pick<JwtTokens, 'refreshToken'>>;
-  createUserRegistrationToken(
-    email: string,
-    option?: JwtSignOptions,
-  ): Promise<string>;
-  validateToken<TResult extends object>(token: string, option?: JwtVerifyOptions): TResult;
+  createUserRegistrationToken(): string;
+  validateToken<TResult extends object>(
+    token: string,
+    option?: JwtVerifyOptions,
+  ): TResult;
 }

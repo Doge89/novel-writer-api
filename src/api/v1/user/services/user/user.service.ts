@@ -9,6 +9,7 @@ import { UserServiceBase } from '../../../../../typescript/interfaces/services/u
 import { UserFinishRegisterDto, UserRegisterDto } from '../../dtos/user.dto';
 import { CryptoService } from '../../../../../services/auth/crypto/crypto.service';
 import { BaseValidatorService } from '../../../../../services/validators/base-validator/base-validator.service';
+import { MILLISECONDS_IN_DAY } from "../../../../../config/constants";
 @Injectable()
 export class UserService implements UserServiceBase {
   constructor(
@@ -52,8 +53,7 @@ export class UserService implements UserServiceBase {
     return this.prismaService.user.create({
       data: {
         userUUID: uuidv4(),
-        tokenRegistration:
-          await this.cryptoService.encryptString(tokenRegistration),
+        tokenRegistration,
         birthDay: new Date(),
         firstName: '',
         lastName: '',
@@ -62,10 +62,14 @@ export class UserService implements UserServiceBase {
         email,
         gender: 'M',
         region: 'USA',
+        registrationExpiresAt: new Date(Date.now() + MILLISECONDS_IN_DAY),
       },
     });
   }
   public async registerUser(userDto: UserFinishRegisterDto): Promise<User> {
-
+    return this.prismaService.user.update({
+      where: { userId: 1 },
+      data: userDto,
+    });
   }
 }

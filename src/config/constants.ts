@@ -17,6 +17,7 @@ export const USER_TEMPLATE: Prisma.UserUncheckedCreateInput = {
   isActive: true,
   createdAt: new Date(),
   updatedAt: new Date(),
+  registrationExpiresAt: new Date(),
 };
 
 export const MIN_PASSWORD_LENGTH = 8;
@@ -29,3 +30,6 @@ export const STRING_IS_ALPHANUMERIC = new RegExp(
 export const IS_STRING_VALID_EMAIL = new RegExp(
   /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
 );
+
+export const DEFAULT_HASH_SIZE = 32;
+export const MILLISECONDS_IN_DAY = 86_400_000;

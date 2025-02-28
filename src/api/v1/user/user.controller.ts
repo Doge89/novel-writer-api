@@ -22,6 +22,7 @@ import { UserCanRegisterPipe } from '../../../pipes/auth/user-can-register/user-
 import {
   ValidateUserRegistrationDtoPipe
 } from "../../../pipes/auth/validate-user-registration-dto/validate-user-registration-dto.pipe";
+import { ParseStringPipe } from "../../../pipes/base/parse-string/parse-string.pipe";
 
 @Controller()
 export class UserController {
@@ -56,9 +57,10 @@ export class UserController {
   ): Promise<Pick<JwtTokens, 'refreshToken'>> {
     return this.authService.startUserRegister(userDto);
   }
-  @Post('register')
+  @Post('register/:tokenRegistration')
   @HttpCode(HttpStatus.CREATED)
   public async registerUser(
+    @Param('tokenRegistration', ParseStringPipe) tokenRegistration: string,
     @Body(ValidateUserRegistrationDtoPipe) payload: UserFinishRegisterDto,
   ): Promise<any> {
     console.log('Success');

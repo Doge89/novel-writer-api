@@ -60,32 +60,33 @@ enum ActionPerformed {
 }
 
 model User {
-  userId            Int            @default(autoincrement()) @id
-  userUUID          String         @postgresql.Uuid
-  username          String         @unique @postgresql.VarChar(100)
-  firstName         String         @postgresql.VarChar(100)
-  lastName          String         @postgresql.VarChar(100)
-  birthDay          DateTime       @postgresql.Timestamptz()
-  email             String         @unique
-  password          String
-  avatar            String?        @postgresql.Text
-  bio               String?        @postgresql.Text
-  gender            Gender
-  pronouns          String?        @default("")
-  region            Region
-  isUserValidated   Boolean        @postgresql.Boolean @default(false)
-  tokenRegistration String         @postgresql.Text
-  isWriter          Boolean        @postgresql.Boolean @default(false)
-  isActive          Boolean        @postgresql.Boolean @default(true)
-  createdAt         DateTime       @postgresql.Timestamptz() @default(now())
-  updatedAt         DateTime       @postgresql.Timestamptz() @default(now())
-  createdStories    Story[]
-  collections       Collection[]
-  reading           UserReading[]
-  ownedGroups       Group[]
-  memberIn          GroupMembers[]
-  feats             UserFeats[]
-  userActions       Log[]
+  userId                Int            @default(autoincrement()) @id
+  userUUID              String         @postgresql.Uuid
+  username              String         @unique @postgresql.VarChar(100)
+  firstName             String         @postgresql.VarChar(100)
+  lastName              String         @postgresql.VarChar(100)
+  birthDay              DateTime       @postgresql.Timestamptz()
+  email                 String         @unique
+  password              String
+  avatar                String?        @postgresql.Text
+  bio                   String?        @postgresql.Text
+  gender                Gender
+  pronouns              String?        @default("")
+  region                Region
+  isUserValidated       Boolean        @postgresql.Boolean @default(false)
+  tokenRegistration     String         @postgresql.Text @unique
+  registrationExpiresAt DateTime       @postgresql.Timestamptz()
+  isWriter              Boolean        @postgresql.Boolean @default(false)
+  isActive              Boolean        @postgresql.Boolean @default(true)
+  createdAt             DateTime       @postgresql.Timestamptz() @default(now())
+  updatedAt             DateTime       @postgresql.Timestamptz() @default(now())
+  createdStories        Story[]
+  collections           Collection[]
+  reading               UserReading[]
+  ownedGroups           Group[]
+  memberIn              GroupMembers[]
+  feats                 UserFeats[]
+  userActions           Log[]
 
   @@index([username, email, firstName, createdAt(sort: Desc)])
 }

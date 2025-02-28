@@ -6,3 +6,7 @@ export type PrismaEnum<
 > = TData extends (typeof $Enums)[TKeyEnum] ? TData : never;
 
 export type PrismaEnumKeys = keyof typeof $Enums;
+
+export type ProjectEnvironments = 'dev' | 'prod' | 'quality';
+
+export type EnvironmentFiles = Record<ProjectEnvironments, string>;

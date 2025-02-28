@@ -14,16 +14,15 @@ export class ValidateRegistrationTokenMiddleware implements NestMiddleware {
     private readonly authService: AuthService,
   ) {}
   use(req: Request, res: Response, next: NextFunction) {
-    const { registerToken } = req.params;
-    const decodedToken = decodeURIComponent(registerToken);
+    const { tokenRegistration } = req.params;
     if (
-      !this.baseValidatorService.isValidString(decodedToken, {
+      !this.baseValidatorService.isValidString(tokenRegistration, {
         ignoreWhitespace: true,
       })
     )
       throw new UnauthorizedException('Token is missing');
     this.authService
-      .validateRegisterToken(decodedToken)
+      .validateRegisterToken(tokenRegistration)
       .then(() => {
         next();
       })
