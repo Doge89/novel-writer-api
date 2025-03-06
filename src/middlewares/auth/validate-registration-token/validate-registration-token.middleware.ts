@@ -23,11 +23,12 @@ export class ValidateRegistrationTokenMiddleware implements NestMiddleware {
       throw new UnauthorizedException('Token is missing');
     this.authService
       .validateRegisterToken(tokenRegistration)
-      .then(() => {
+      .then((isValid) => {
+        if (!isValid) throw new UnauthorizedException('Token is invalid');
         next();
       })
       .catch((error) => {
-        next(new UnauthorizedException(error.message));
+        next(error);
       });
   }
 }

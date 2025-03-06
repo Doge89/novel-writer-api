@@ -1,5 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { $Enums, Prisma, User } from "@prisma/client";
+import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Prisma, User } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 
 import { PrismaService } from '../../../../../services/database/prisma/prisma.service';
@@ -9,13 +9,15 @@ import { UserServiceBase } from '../../../../../typescript/interfaces/services/u
 import { UserFinishRegisterDto, UserRegisterDto } from '../../dtos/user.dto';
 import { CryptoService } from '../../../../../services/auth/crypto/crypto.service';
 import { BaseValidatorService } from '../../../../../services/validators/base-validator/base-validator.service';
-import { MILLISECONDS_IN_DAY } from "../../../../../config/constants";
+import { MILLISECONDS_IN_DAY } from '../../../../../config/constants';
+import { AuthService } from '../../../auth/services/auth/auth.service';
 @Injectable()
 export class UserService implements UserServiceBase {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly baseValidatorService: BaseValidatorService,
     private readonly cryptoService: CryptoService,
+    private readonly authService: AuthService,
   ) {}
 
   public async getAllUsers({
@@ -42,6 +44,16 @@ export class UserService implements UserServiceBase {
     });
   }
 
+  public async getFirstUser(
+    query: Prisma.UserWhereInput,
+  ): Promise<User | null> {
+    return (
+      await this.prismaService.user.findMany({
+        where: query,
+      })
+    ).at(0);
+  }
+
   public async startUserRegister(
     { email, password }: UserRegisterDto,
     tokenRegistration: string,
@@ -66,10 +78,37 @@ export class UserService implements UserServiceBase {
       },
     });
   }
-  public async registerUser(userDto: UserFinishRegisterDto): Promise<User> {
+
+  public async registerUser(
+    tokenRegistration: string,
+    userDto: UserFinishRegisterDto,
+  ): Promise<User> {
+    const { isUserValidated }: User = await this.getFirstUser({
+      tokenRegistration,
+    });
+    if (isUserValidated) {
+      throw new InternalServerErrorException('User already registered');
+    }
     return this.prismaService.user.update({
       where: { userId: 1 },
       data: userDto,
+    });
+  }
+
+  public async refreshUserTokenRegistration(
+    oldToken: string,
+    newToken: string,
+  ): Promise<User> {
+    const { email }: User = await this.getFirstUser({
+      tokenRegistration: oldToken,
+    });
+    return this.prismaService.user.update({
+      where: { email },
+      data: {
+        tokenRegistration: newToken,
+        registrationExpiresAt: new Date(Date.now() + MILLISECONDS_IN_DAY),
+        updatedAt: new Date(Date.now()),
+      },
     });
   }
 }

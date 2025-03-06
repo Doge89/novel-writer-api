@@ -14,7 +14,7 @@ export class ValidateUserRegistrationDtoPipe implements PipeTransform {
     private readonly baseValidator: BaseValidatorService,
     private readonly userService: UserService,
   ) {}
-  transform(value: UserFinishRegisterDto, metadata: ArgumentMetadata) {
+  async transform(value: UserFinishRegisterDto, metadata: ArgumentMetadata) {
     const errors: string[] = [];
     if (!this.baseValidator.isValidPrismaEnumValue(value.gender, 'Gender'))
       errors.push('This is not a valid value for gender');
@@ -28,7 +28,10 @@ export class ValidateUserRegistrationDtoPipe implements PipeTransform {
       )
     )
       errors.push('The name and last name are required');
-    if (this.userService.getUser({ username: value.username }) !== null) {
+    console.log(value);
+    if (
+      (await this.userService.getUser({ username: value.username })) !== null
+    ) {
       errors.push('A user with this username already exists');
     }
     if (errors.length > 0)

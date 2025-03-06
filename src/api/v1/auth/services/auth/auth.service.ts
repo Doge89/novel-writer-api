@@ -1,11 +1,11 @@
 import { User } from '@prisma/client';
 import { JwtService, JwtVerifyOptions } from '@nestjs/jwt';
 import {
-  ForbiddenException,
+  BadRequestException, forwardRef, Inject,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+  NotFoundException
+} from "@nestjs/common";
 
 import { UserService } from '../../../user/services/user/user.service';
 
@@ -20,6 +20,7 @@ import { DEFAULT_HASH_SIZE } from '../../../../../config/constants';
 export class AuthService implements AuthServiceBase {
   constructor(
     private readonly jwtService: JwtService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly cryptoService: CryptoService,
   ) {}
@@ -46,15 +47,32 @@ export class AuthService implements AuthServiceBase {
     return this.jwtService.verify<TResult>(token, options);
   }
   public async validateRegisterToken(token: string): Promise<boolean> {
-    const user: User = await this.userService.getUser({
+    const user: User = await this.userService.getFirstUser({
+      tokenRegistration: token,
+    });
+    if (user === null || user === undefined) {
+      throw new NotFoundException(`User not found for that token`);
+    }
+    return user.registrationExpiresAt.valueOf() > Date.now();
+  }
+
+  public async refreshUserRegistrationToken(
+    token: string,
+  ): Promise<Pick<JwtTokens, 'refreshToken'>> {
+    const user: User = await this.userService.getFirstUser({
       tokenRegistration: token,
     });
     if (user === null) {
       throw new NotFoundException(`User not found for that token`);
     }
-    if (user.registrationExpiresAt.valueOf() < Date.now()) {
-      throw new ForbiddenException('Token has already expired');
+    if (user.registrationExpiresAt.valueOf() > Date.now()) {
+      throw new BadRequestException('Token is still valid');
     }
-    return true;
+    if (user.isUserValidated) {
+      throw new BadRequestException('User is already registered');
+    }
+    const refreshToken: string = this.createUserRegistrationToken();
+    await this.userService.refreshUserTokenRegistration(token, refreshToken);
+    return { refreshToken };
   }
 }

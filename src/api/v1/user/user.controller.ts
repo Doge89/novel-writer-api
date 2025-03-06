@@ -19,10 +19,8 @@ import { UserFinishRegisterDto, UserRegisterDto } from './dtos/user.dto';
 import { JwtTokens } from '../../../typescript/interfaces/models/auth/auth.model';
 
 import { UserCanRegisterPipe } from '../../../pipes/auth/user-can-register/user-can-register.pipe';
-import {
-  ValidateUserRegistrationDtoPipe
-} from "../../../pipes/auth/validate-user-registration-dto/validate-user-registration-dto.pipe";
-import { ParseStringPipe } from "../../../pipes/base/parse-string/parse-string.pipe";
+import { ValidateUserRegistrationDtoPipe } from '../../../pipes/auth/validate-user-registration-dto/validate-user-registration-dto.pipe';
+import { ParseStringPipe } from '../../../pipes/base/parse-string/parse-string.pipe';
 
 @Controller()
 export class UserController {
@@ -62,7 +60,7 @@ export class UserController {
   public async registerUser(
     @Param('tokenRegistration', ParseStringPipe) tokenRegistration: string,
     @Body(ValidateUserRegistrationDtoPipe) payload: UserFinishRegisterDto,
-  ): Promise<any> {
-    console.log('Success');
+  ): Promise<User> {
+    return this.userService.registerUser(tokenRegistration, payload);
   }
 }

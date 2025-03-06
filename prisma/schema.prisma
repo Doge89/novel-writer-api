@@ -60,12 +60,13 @@ enum ActionPerformed {
 }
 
 model User {
-  userId                Int            @default(autoincrement()) @id
-  userUUID              String         @postgresql.Uuid
+  @@map("user")
+  userId                Int            @default(autoincrement()) @id @map("user_id")
+  userUUID              String         @postgresql.Uuid @map("user_uuid")
   username              String         @unique @postgresql.VarChar(100)
-  firstName             String         @postgresql.VarChar(100)
-  lastName              String         @postgresql.VarChar(100)
-  birthDay              DateTime       @postgresql.Timestamptz()
+  firstName             String         @postgresql.VarChar(100) @map("firstname")
+  lastName              String         @postgresql.VarChar(100) @map("lastname")
+  birthDay              DateTime       @postgresql.Timestamptz() @map("birth_day")
   email                 String         @unique
   password              String
   avatar                String?        @postgresql.Text
@@ -73,13 +74,13 @@ model User {
   gender                Gender
   pronouns              String?        @default("")
   region                Region
-  isUserValidated       Boolean        @postgresql.Boolean @default(false)
-  tokenRegistration     String         @postgresql.Text @unique
-  registrationExpiresAt DateTime       @postgresql.Timestamptz()
-  isWriter              Boolean        @postgresql.Boolean @default(false)
-  isActive              Boolean        @postgresql.Boolean @default(true)
-  createdAt             DateTime       @postgresql.Timestamptz() @default(now())
-  updatedAt             DateTime       @postgresql.Timestamptz() @default(now())
+  isUserValidated       Boolean        @postgresql.Boolean @default(false) @map("is_user_validated")
+  tokenRegistration     String         @postgresql.Text @map("token_registration")
+  registrationExpiresAt DateTime       @postgresql.Timestamptz() @map("registration_expires_at")
+  isWriter              Boolean        @postgresql.Boolean @default(false) @map("is_writer")
+  isActive              Boolean        @postgresql.Boolean @default(true) @map("is_active")
+  createdAt             DateTime       @postgresql.Timestamptz() @default(now()) @map("created_at")
+  updatedAt             DateTime       @postgresql.Timestamptz() @default(now()) @map("updated_at")
   createdStories        Story[]
   collections           Collection[]
   reading               UserReading[]

@@ -14,3 +14,7 @@ export interface UserFinishRegisterDto
   > {
   interests: string[];
 }
+
+export interface UserDto
+  extends Omit<UserFinishRegisterDto, 'interests' | 'birthDay'>,
+    Pick<User, 'avatar' | 'bio' | 'pronouns'> {}

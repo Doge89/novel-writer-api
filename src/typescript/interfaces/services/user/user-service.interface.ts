@@ -18,5 +18,13 @@ export interface UserServiceBase {
     { email, password }: UserRegisterDto,
     tokenRegistration: string,
   ): Promise<User>;
-  registerUser(userDto: UserFinishRegisterDto): Promise<User>;
+  registerUser(
+    tokenRegistration: string,
+    userDto: UserFinishRegisterDto,
+  ): Promise<User>;
+  getFirstUser(query: Prisma.UserWhereInput): Promise<User | null>;
+  refreshUserTokenRegistration(
+    oldToken: string,
+    newToken: string,
+  ): Promise<User>;
 }

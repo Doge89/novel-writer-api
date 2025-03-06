@@ -1,4 +1,4 @@
-import { Controller, Body, Post } from '@nestjs/common';
+import { Controller, Body, Post, Patch } from '@nestjs/common';
 
 import { AuthService } from './services/auth/auth.service';
 import { ValidateRegisterTokenDTO } from './dtos/validate-register-token.dto';
@@ -12,5 +12,12 @@ export class AuthController {
     @Body() payload: ValidateRegisterTokenDTO,
   ) {
     return this.authService.validateRegisterToken(payload.tokenRegistration);
+  }
+
+  @Patch('register-token')
+  public async updateRegisterToken(@Body() payload: ValidateRegisterTokenDTO) {
+    return this.authService.refreshUserRegistrationToken(
+      payload.tokenRegistration,
+    );
   }
 }

@@ -13,4 +13,7 @@ export interface AuthServiceBase {
     token: string,
     option?: JwtVerifyOptions,
   ): TResult;
+  refreshUserRegistrationToken(
+    token: string,
+  ): Promise<Pick<JwtTokens, 'refreshToken'>>;
 }
