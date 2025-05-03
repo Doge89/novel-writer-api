@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -83,14 +88,22 @@ export class UserService implements UserServiceBase {
     tokenRegistration: string,
     userDto: UserFinishRegisterDto,
   ): Promise<User> {
-    const { isUserValidated }: User = await this.getFirstUser({
+    const user: User = await this.getFirstUser({
       tokenRegistration,
     });
-    if (isUserValidated) {
-      throw new InternalServerErrorException('User already registered');
+    if (user === null || user === undefined) {
+      throw new NotFoundException('User has not begun the registration');
+    }
+    if (user.isUserValidated) {
+      throw new InternalServerErrorException('User already validated');
+    }
+    if ((await this.getFirstUser({ username: userDto.username })) !== null) {
+      throw new InternalServerErrorException(
+        'User already exists with that username',
+      );
     }
     return this.prismaService.user.update({
-      where: { userId: 1 },
+      where: { email: user.email },
       data: userDto,
     });
   }
