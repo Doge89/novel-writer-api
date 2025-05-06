@@ -11,9 +11,10 @@ import { ValidatorsModule } from '../../../services/validators/validators.module
 import { AuthModule } from '../auth/auth.module';
 import { AuthModule as AuthServicesModule } from '../../../services/auth/auth.module';
 import { ValidateRegistrationTokenMiddleware } from '../../../middlewares/auth/validate-registration-token/validate-registration-token.middleware';
+import { EmailModule } from '../../../services/email/email.module';
 
 @Module({
-  imports: [ValidatorsModule, AuthServicesModule, AuthModule],
+  imports: [ValidatorsModule, AuthServicesModule, AuthModule, EmailModule],
   providers: [PrismaService, UserService],
   controllers: [UserController],
   exports: [UserService],

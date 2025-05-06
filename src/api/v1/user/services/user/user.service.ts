@@ -14,15 +14,20 @@ import { UserServiceBase } from '../../../../../typescript/interfaces/services/u
 import { UserFinishRegisterDto, UserRegisterDto } from '../../dtos/user.dto';
 import { CryptoService } from '../../../../../services/auth/crypto/crypto.service';
 import { BaseValidatorService } from '../../../../../services/validators/base-validator/base-validator.service';
-import { MILLISECONDS_IN_DAY } from '../../../../../config/constants';
-import { AuthService } from '../../../auth/services/auth/auth.service';
+import {
+  MAILGUN_TEMPLATE_WELCOME_EMAIL,
+  MILLISECONDS_IN_DAY,
+  URL_FRONTEND_CLIENT,
+} from '../../../../../config/constants';
+import { MailgunService } from '../../../../../services/email/mailgun/mailgun.service';
+
 @Injectable()
 export class UserService implements UserServiceBase {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly baseValidatorService: BaseValidatorService,
     private readonly cryptoService: CryptoService,
-    private readonly authService: AuthService,
+    private readonly mailGunService: MailgunService,
   ) {}
 
   public async getAllUsers({
@@ -66,8 +71,7 @@ export class UserService implements UserServiceBase {
     if (!this.baseValidatorService.isValidPassword(password)) {
       throw new BadRequestException('User cannot register');
     }
-    console.log(tokenRegistration);
-    return this.prismaService.user.create({
+    const user = this.prismaService.user.create({
       data: {
         userUUID: uuidv4(),
         tokenRegistration,
@@ -82,6 +86,14 @@ export class UserService implements UserServiceBase {
         registrationExpiresAt: new Date(Date.now() + MILLISECONDS_IN_DAY),
       },
     });
+    this.mailGunService.setTemplate(MAILGUN_TEMPLATE_WELCOME_EMAIL);
+    this.mailGunService.setVariables({
+      link: `${URL_FRONTEND_CLIENT}/signup/${tokenRegistration}`,
+      username: email.split('@').at(0),
+    });
+    this.mailGunService.setTo(email);
+    await this.mailGunService.send();
+    return user;
   }
 
   public async registerUser(

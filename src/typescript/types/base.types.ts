@@ -1,4 +1,5 @@
 import { $Enums } from '@prisma/client';
+import Mailgun from 'mailgun.js';
 
 export type PrismaEnum<
   TData,
@@ -10,3 +11,5 @@ export type PrismaEnumKeys = keyof typeof $Enums;
 export type ProjectEnvironments = 'dev' | 'prod' | 'quality';
 
 export type EnvironmentFiles = Record<ProjectEnvironments, string>;
+
+export type MailgunClient = ReturnType<InstanceType<typeof Mailgun>['client']>;

@@ -10,13 +10,15 @@ import { AuthModule } from './services/auth/auth.module';
 import { AuthModule as AuthUserModule } from './api/v1/auth/auth.module';
 
 import secrets from './config/secrets.config';
+import mailConfig from './config/mail.config';
 import { ENVIRONMENTS } from './config/environments';
+import { EmailModule } from './services/email/email.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: ENVIRONMENTS[process.env.NODE_ENV || 'development'],
-      load: [secrets],
+      load: [secrets, mailConfig],
       isGlobal: true,
     }),
     UserModule,
@@ -25,6 +27,7 @@ import { ENVIRONMENTS } from './config/environments';
     DatabaseManagerModule,
     AppRouterModule,
     ValidatorsModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

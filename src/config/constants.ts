@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { MailgunMessageData } from 'mailgun.js/definitions';
 
 export const USER_TEMPLATE: Prisma.UserUncheckedCreateInput = {
   userId: NaN,
@@ -33,3 +34,14 @@ export const IS_STRING_VALID_EMAIL = new RegExp(
 
 export const DEFAULT_HASH_SIZE = 32;
 export const MILLISECONDS_IN_DAY = 86_400_000;
+
+export const MESSAGE_TEMPLATE: MailgunMessageData = {
+  from: '.',
+  to: [],
+  subject: 'Hello ',
+  text: 'Congratulations, you just sent an email with Mailgun! You are truly awesome!',
+};
+
+export const URL_FRONTEND_CLIENT = 'http://localhost:3000';
+
+export const MAILGUN_TEMPLATE_WELCOME_EMAIL = 'welcome-email';

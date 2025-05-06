@@ -7,7 +7,7 @@ import {
   IS_STRING_VALID_EMAIL,
   MIN_PASSWORD_LENGTH,
 } from '../../../config/constants';
-import { PrismaEnum, PrismaEnumKeys } from "../../../typescript/types/base.types";
+import { PrismaEnumKeys } from '../../../typescript/types/base.types';
 
 @Injectable()
 export class BaseValidatorService {
