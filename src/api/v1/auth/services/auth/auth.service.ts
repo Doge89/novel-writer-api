@@ -27,10 +27,6 @@ export class AuthService implements AuthServiceBase {
   public async startUserRegister(
     user: UserRegisterDto,
   ): Promise<Pick<JwtTokens, 'refreshToken'>> {
-    const userFound = await this.userService.getUser({ email: user.email });
-    if (userFound !== null) {
-      throw new InternalServerErrorException('This user is already registered');
-    }
     const userRegistered: User = await this.userService.startUserRegister(
       user,
       this.createUserRegistrationToken(),

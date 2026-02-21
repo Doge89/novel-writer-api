@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -57,11 +58,9 @@ export class UserService implements UserServiceBase {
   public async getFirstUser(
     query: Prisma.UserWhereInput,
   ): Promise<User | null> {
-    return (
-      await this.prismaService.user.findMany({
-        where: query,
-      })
-    ).at(0);
+    return this.prismaService.user.findFirst({
+      where: query,
+    });
   }
 
   public async startUserRegister(
@@ -71,25 +70,47 @@ export class UserService implements UserServiceBase {
     if (!this.baseValidatorService.isValidPassword(password)) {
       throw new BadRequestException('User cannot register');
     }
-    const user = this.prismaService.user.create({
-      data: {
-        userUUID: uuidv4(),
-        tokenRegistration,
-        birthDay: new Date(),
-        firstName: '',
-        lastName: '',
-        username: email.split('@').at(0),
-        password: await this.cryptoService.encryptString(password, true),
-        email,
-        gender: 'M',
-        region: 'USA',
-        registrationExpiresAt: new Date(Date.now() + MILLISECONDS_IN_DAY),
-      },
-    });
+
+    let username = email.split('@').at(0);
+    let user: User;
+
+    while (true) {
+      try {
+        user = await this.prismaService.user.create({
+          data: {
+            userUUID: uuidv4(),
+            tokenRegistration,
+            birthDay: new Date(),
+            firstName: '',
+            lastName: '',
+            username,
+            password: await this.cryptoService.encryptString(password, true),
+            email,
+            gender: 'M',
+            region: 'USA',
+            registrationExpiresAt: new Date(Date.now() + MILLISECONDS_IN_DAY),
+          },
+        });
+        break;
+      } catch (error) {
+        if (
+          error.code === 'P2002' &&
+          (error.meta?.target?.includes('username') ||
+            error.meta?.target === 'username')
+        ) {
+          username = `${email.split('@').at(0)}${Math.floor(
+            Math.random() * 10000,
+          )}`;
+        } else {
+          throw error;
+        }
+      }
+    }
+
     this.mailGunService.setTemplate(MAILGUN_TEMPLATE_WELCOME_EMAIL);
     this.mailGunService.setVariables({
       link: `${URL_FRONTEND_CLIENT}/signup/${tokenRegistration}`,
-      username: email.split('@').at(0),
+      username,
     });
     this.mailGunService.setTo(email);
     await this.mailGunService.send();
@@ -103,20 +124,27 @@ export class UserService implements UserServiceBase {
     const user: User = await this.getFirstUser({
       tokenRegistration,
     });
-    if (user === null || user === undefined) {
+    if (!user) {
       throw new NotFoundException('User has not begun the registration');
     }
     if (user.isUserValidated) {
       throw new InternalServerErrorException('User already validated');
     }
-    if ((await this.getFirstUser({ username: userDto.username })) !== null) {
-      throw new InternalServerErrorException(
-        'User already exists with that username',
-      );
+    const existingUser = await this.getFirstUser({
+      username: userDto.username,
+    });
+    if (existingUser && existingUser.userId !== user.userId) {
+      throw new ConflictException('User already exists with that username');
     }
+
+    const { interests, ...userData } = userDto;
+
     return this.prismaService.user.update({
       where: { email: user.email },
-      data: userDto,
+      data: {
+        ...userData,
+        isUserValidated: true,
+      },
     });
   }
 
