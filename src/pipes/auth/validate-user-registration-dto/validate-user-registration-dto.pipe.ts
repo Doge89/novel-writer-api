@@ -29,11 +29,6 @@ export class ValidateUserRegistrationDtoPipe implements PipeTransform {
     )
       errors.push('The name and last name are required');
     console.log(value);
-    if (
-      (await this.userService.getUser({ username: value.username })) !== null
-    ) {
-      errors.push('A user with this username already exists');
-    }
     if (errors.length > 0)
       throw new BadRequestException({
         message: `We can't create the user with the information given`,

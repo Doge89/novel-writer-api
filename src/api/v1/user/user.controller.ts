@@ -44,8 +44,6 @@ export class UserController {
   public async getUserById(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<User | null> {
-    const data: User = await this.userService.getUser({ userId: id });
-    console.log(data);
     return this.userService.getUser({ userId: id });
   }
   @Post('start-register')
