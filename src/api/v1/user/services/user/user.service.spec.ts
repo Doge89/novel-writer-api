@@ -63,21 +63,17 @@ describe('UserService', () => {
   });
 
   describe('startUserRegister', () => {
-    it('should retry if username (derived from email) is taken (Prisma constraint)', async () => {
+    it('should throw error if username (derived from email) is taken', async () => {
       const dto: UserRegisterDto = { email: 'test@example.com', password: 'password123' };
 
       const error: any = new Error('Unique constraint failed');
       error.code = 'P2002';
       error.meta = { target: ['username'] };
 
-      // First call fails, second call succeeds
-      (prismaService.user.create as jest.Mock)
-        .mockRejectedValueOnce(error)
-        .mockResolvedValueOnce({ userId: 1, username: 'test1234' } as User);
+      (prismaService.user.create as jest.Mock).mockRejectedValue(error);
 
-      const result = await service.startUserRegister(dto, 'token');
-      expect(prismaService.user.create).toHaveBeenCalledTimes(2);
-      expect(result.username).not.toBe('test'); // Should have retried
+      await expect(service.startUserRegister(dto, 'token')).rejects.toThrow();
+      expect(prismaService.user.create).toHaveBeenCalledTimes(1);
     });
   });
 

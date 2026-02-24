@@ -71,46 +71,26 @@ export class UserService implements UserServiceBase {
       throw new BadRequestException('User cannot register');
     }
 
-    let username = email.split('@').at(0);
-    let user: User;
-
-    while (true) {
-      try {
-        user = await this.prismaService.user.create({
-          data: {
-            userUUID: uuidv4(),
-            tokenRegistration,
-            birthDay: new Date(),
-            firstName: '',
-            lastName: '',
-            username,
-            password: await this.cryptoService.encryptString(password, true),
-            email,
-            gender: 'M',
-            region: 'USA',
-            registrationExpiresAt: new Date(Date.now() + MILLISECONDS_IN_DAY),
-          },
-        });
-        break;
-      } catch (error) {
-        if (
-          error.code === 'P2002' &&
-          (error.meta?.target?.includes('username') ||
-            error.meta?.target === 'username')
-        ) {
-          username = `${email.split('@').at(0)}${Math.floor(
-            Math.random() * 10000,
-          )}`;
-        } else {
-          throw error;
-        }
-      }
-    }
+    const user = await this.prismaService.user.create({
+      data: {
+        userUUID: uuidv4(),
+        tokenRegistration,
+        birthDay: new Date(),
+        firstName: '',
+        lastName: '',
+        username: email.split('@').at(0),
+        password: await this.cryptoService.encryptString(password, true),
+        email,
+        gender: 'M',
+        region: 'USA',
+        registrationExpiresAt: new Date(Date.now() + MILLISECONDS_IN_DAY),
+      },
+    });
 
     this.mailGunService.setTemplate(MAILGUN_TEMPLATE_WELCOME_EMAIL);
     this.mailGunService.setVariables({
       link: `${URL_FRONTEND_CLIENT}/signup/${tokenRegistration}`,
-      username,
+      username: email.split('@').at(0),
     });
     this.mailGunService.setTo(email);
     await this.mailGunService.send();
