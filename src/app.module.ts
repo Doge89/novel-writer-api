@@ -13,6 +13,7 @@ import secrets from './config/secrets.config';
 import mailConfig from './config/mail.config';
 import { ENVIRONMENTS } from './config/environments';
 import { EmailModule } from './services/email/email.module';
+import { TagModule } from './api/v1/tag/tag.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { EmailModule } from './services/email/email.module';
     AppRouterModule,
     ValidatorsModule,
     EmailModule,
+    TagModule,
   ],
   controllers: [AppController],
   providers: [AppService],

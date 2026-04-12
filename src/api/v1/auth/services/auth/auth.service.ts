@@ -1,11 +1,12 @@
 import { User } from '@prisma/client';
 import { JwtService, JwtVerifyOptions } from '@nestjs/jwt';
 import {
-  BadRequestException, forwardRef, Inject,
+  BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
-  InternalServerErrorException,
-  NotFoundException
-} from "@nestjs/common";
+  NotFoundException,
+} from '@nestjs/common';
 
 import { UserService } from '../../../user/services/user/user.service';
 

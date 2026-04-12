@@ -256,4 +256,3 @@ model UserFeats {
   feat Feat @relation(fields: [featId], references: [featId])
   user User @relation(fields: [userId], references: [userId])
 }
-
